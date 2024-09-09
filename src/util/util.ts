@@ -1,3 +1,4 @@
+import axios from "axios";
 import fs from "fs";
 import Jimp = require("jimp");
 
@@ -11,15 +12,18 @@ import Jimp = require("jimp");
 export async function filterImageFromURL(inputURL: string): Promise<string> {
   return new Promise(async (resolve, reject) => {
     try {
-      const photo = await Jimp.read(inputURL);
-      const outpath =
-        "/tmp/filtered." + Math.floor(Math.random() * 2000) + ".jpg";
+      const photoBuffer = await axios.get(inputURL, {
+        responseType: "arraybuffer",
+      });
+      const photo = await Jimp.read(Buffer.from(photoBuffer?.data, "binary"));
+      const outpath = "/tmp/filtered." + Math.floor(Math.random() * 2000) + ".jpg";
+      
       await photo
-        .resize(256, 256) // resize
-        .quality(60) // set JPEG quality
-        .greyscale() // set greyscale
-        .write(__dirname + outpath, (img) => {
-          resolve(__dirname + outpath);
+        .resize(256, 256) // Resize
+        .quality(60) // Set JPEG quality
+        .greyscale() // Set greyscale
+        .write(outpath, (img) => {
+          resolve(outpath);
         });
     } catch (error) {
       reject(error);
